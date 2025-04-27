@@ -205,8 +205,8 @@ class Battlefield {
         this.ctx.beginPath();
         let eyePosition1 = 25 *Math.random()/1
         let eyePosition2 =  25*Math.random()/1
-        this.ctx.arc(x - eyePosition1, y - size / 6, 12, 0, Math.PI * 2); // Левый глаз
-        this.ctx.arc(x + eyePosition2, y - size / 6, 12, 0, Math.PI * 2); // Правый глаз
+        this.ctx.arc(x - eyePosition1, y -3+6*Math.random() - size / 6, 12, 0, Math.PI * 2); // Левый глаз
+        this.ctx.arc(x + eyePosition2, y -3+6*Math.random() - size / 6, 12, 0, Math.PI * 2); // Правый глаз
         this.ctx.fill();
 
 
@@ -227,8 +227,8 @@ class Battlefield {
         this.ctx.fillStyle = 'rgba(20, 36, 2, 0.9)';
         this.ctx.beginPath();
         // Левый зрачок
-        const pupilOffset = isEnemy ? -3 : 0;
-        this.ctx.arc(x - eyePosition1 + pupilOffset, y - size / 6, 5, 0, Math.PI * 2);
+        const pupilOffset = isEnemy ? -3 : 2;
+        this.ctx.arc(x - eyePosition1 + pupilOffset, y -3+6*Math.random() - size / 6, 5, 0, Math.PI * 2);
         // Правый зрачок
         this.ctx.arc(x + eyePosition2 + pupilOffset, y - size / 6, 5, 0, Math.PI * 2);
         this.ctx.fill();
