@@ -1,17 +1,18 @@
+*{
+    box-sizing: border-box;    
+}
 
 body {
     font-family: Arial, sans-serif;
     background-color: #222;
     color: white;
+    margin: 0;
+    padding: 0;
 }
-#battlefield {
-    width: 600px;
-    height: 400px;
-    background-color: #333;
-    position: relative;
-    border: 2px solid #555;
-    margin: 20px auto;
+h1{
+    text-align: center;
 }
+
 .character {
     width: 80px;
     height: 80px;
@@ -54,4 +55,11 @@ body {
     font-size: 12px;
     text-align: center;
     margin-top: 5px;
+}
+
+canvas{
+    width: 1200px;
+    height: 800px;
+    border: 2px solid #555;
+    margin: 20px auto;
 }
