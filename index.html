@@ -10,11 +10,16 @@
 
 <body>
     <h1>Битва жуков</h1>
-    <button onclick="window.location.reload()" 
+    <button onclick="window.location.reload()"
         style="position:fixed; top:20px; left:20px; padding:10px; background:#4CAF50; color:white; border:none; border-radius:5px; cursor:pointer">
-    Обновить
-</button>
-    <canvas id="battlefield"></canvas>
+        Обновить
+    </button>
+
+    <div id="game-container" style="position: relative;">
+        <canvas id="battlefield"></canvas>
+        <!-- Сюда будут добавляться canvas персонажей -->
+    </div>
+
     <script src="scripts.js"></script>
 </body>
 

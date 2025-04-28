@@ -91,8 +91,8 @@ class CharacterRenderer {
                 color: 'rgba(30, 30, 30, 0.9)',
                 enemyYOffset: 20,
                 friendYOffset: 11.5,
-                length: size / randomInteger(10,13),
-                leftAngle:randomInteger(0,10)<5? randomInteger(-3,-10)/10:randomInteger(0,10)<5?-0.3:0.1,  // Угол наклона левой брови
+                length: size / randomInteger(10, 13),
+                leftAngle: randomInteger(0, 10) < 5 ? randomInteger(-3, -10) / 10 : randomInteger(0, 10) < 5 ? -0.3 : 0.1,  // Угол наклона левой брови
                 rightAngle: 0.2   // Угол наклона правой брови
             }
         };
@@ -269,259 +269,161 @@ function randomInteger(min, max) {
     // случайное число от min до (max+1)
     let rand = min + Math.random() * (max + 1 - min);
     return Math.floor(rand);
-  }
-  
+}
 
 class Battlefield {
-
-    static instance; // Единственный экземпляр класса допустим и сразу инициализируется и запоминается сюда при вызове конструктора
+    static instance;
 
     constructor(canvasID) {
-        if (Battlefield.instance) {
-            return Battlefield.instance;
-        }
+        if (Battlefield.instance) return Battlefield.instance;
         Battlefield.instance = this;
 
-        // Инициализация canvas
+        // Основной canvas
         this.canvas = document.getElementById(canvasID);
         this.ctx = this.canvas.getContext('2d');
         this.canvas.width = 1200;
         this.canvas.height = 800;
-        this.characters = { friend: [], enemy: [] };
+
+        // Контейнер для персонажей
+        this.container = document.createElement('div');
+        this.container.style.position = 'absolute';
+        this.container.style.top = '0';
+        this.container.style.left = '0';
+        this.canvas.parentElement.appendChild(this.container);
+
         this.gridColor = 'rgba(255, 255, 255, 1)';
-        this._redrawRequested = false;
-        this._dirtyTeams = new Set();
+
+        this.characters = { friend: [], enemy: [] };
+        this._characterCanvases = new Map();
+        this.drawGrid();
     }
 
-    // Регистрация нового персонажа
     registerCharacter(character) {
-        // ведем учет персонажей на поле в поле класса characters
         this.characters[character.team].push(character);
-        this.redrawTeam(character.team);
-    }
 
-    // Перерисовка команды
-    requestRedraw(team) {
-        this._dirtyTeams.add(team);
+        // Создаем canvas для персонажа
+        const charCanvas = document.createElement('canvas');
+        charCanvas.width = 400;
+        charCanvas.height = 300;
+        charCanvas.style.position = 'absolute';
+        charCanvas.style.zIndex = '10';
+        this.container.appendChild(charCanvas);
 
-        if (!this._redrawRequested) {
-            this._redrawRequested = true;
-            requestAnimationFrame(() => {
-                this._dirtyTeams.forEach(team => this.redrawTeam(team));
-                this._dirtyTeams.clear();
-                this._redrawRequested = false;
-            });
-        }
-    }
-
-    requestCharacterRedraw(character) {
-        if (!this._redrawRequested) {
-            this._redrawRequested = true;
-            requestAnimationFrame(() => {
-                this.redrawSingleCharacter(character);
-                this._redrawRequested = false;
-            });
-        }
-    }
-
-    redrawSingleCharacter(character) {
-        const isEnemy = character.team === "enemy";
-        const team = this.characters[character.team];
-        const index = team.indexOf(character);
-        
-        if (index === -1) return;
-
-        const startX = isEnemy ? this.canvas.width * 0.95 : this.canvas.width * 0.05;
-        const startY = this.canvas.height * 0.20;
-        const stepY = 250;
-
-        // Очищаем только область этого персонажа
-        this.clearCharacterArea(
-            startX,
-            startY + index * stepY,
-            character
-        );
-
-        // Перерисовываем только этого персонажа
-        this.drawCharacter(
-            startX,
-            startY + index * stepY,
-            character,
-            isEnemy
-        );
-        
-        character._dirty = false;
-        
-    }
-
-    clearCharacterArea(x, y, character) {
-        const size = 140; // Должно соответствовать вашему размеру персонажа
-        const clearWidth = size * 1.5;
-        const clearHeight = size * 1.5;
-        
-        this.ctx.save();
-        this.ctx.clearRect(
-            x - clearWidth/2,
-            y - clearHeight/2,
-            clearWidth,
-            clearHeight
-        );
-        this.ctx.restore();
-        
-        // Восстанавливаем сетку в очищенной области
-        this.drawGridInArea(
-            x - clearWidth/2,
-            y - clearHeight/2,
-            clearWidth,
-            clearHeight
-        );
-    }
-
-
-
-    redrawTeam(team) {
-        const isEnemy = team === "enemy";
-        const startX = isEnemy ? this.canvas.width * 0.95 : this.canvas.width * 0.05;
-        const startY = this.canvas.height * 0.20;
-        const stepY = 250;
-
-        // Исправлено: обращаемся напрямую к массиву characters[team]
-        const needClear = this.characters[team].some(c => c._dirty);
-        if (needClear) {
-            this.clearTeamArea(isEnemy);
-        }
-
-        this.characters[team].forEach((character, index) => {
-            if (character._dirty || needClear) {
-                this.drawCharacter(
-                    startX,
-                    startY + index * stepY,
-                    character,
-                    isEnemy
-                );
-                character._dirty = false;
-            }
+        this._characterCanvases.set(character, {
+            canvas: charCanvas,
+            ctx: charCanvas.getContext('2d')
         });
+
+        this.updateCharacterPosition(character);
+        this.redrawCharacter(character);
     }
 
-    clearTeamArea(isEnemy) {
-        const startX = isEnemy ? this.canvas.width * 0.7 : 0;
-        const width = this.canvas.width * 0.3;
+    updateCharacterPosition(character) {
+        const teamArray = this.characters[character.team];
+        const index = teamArray.indexOf(character);
+        const isEnemy = character.team === "enemy";
 
-        // Сохраняем текущие настройки контекста
-        this.ctx.save();
+        const x = isEnemy ? this.canvas.width * 0.95 - 100 : this.canvas.width * 0.05 + 100;
+        const y = 150 + index * 250;
 
-        // Очищаем область
-        this.ctx.clearRect(startX, 0, width, this.canvas.height);
-
-        // Восстанавливаем настройки
-        this.ctx.restore();
-
-        // Перерисовываем сетку только в очищенной области
-        this.drawGridInArea(startX, 0, width, this.canvas.height);
+        const charData = this._characterCanvases.get(character);
+        charData.canvas.style.left = `${x - 100}px`;
+        charData.canvas.style.top = `${y - 150}px`;
     }
 
-    drawGridInArea(x, y, width, height) {
-        this.ctx.save();
+    redrawCharacter(character) {
+        const charData = this._characterCanvases.get(character);
+        if (!charData) return;
+
+        const { ctx, canvas } = charData;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Центральные координаты в canvas персонажа
+        const centerX = 100;
+        const centerY = 150;
+        const size = 140;
+
+        if (character.species === 'Орк') {
+            CharacterRenderer.drawOrc(ctx, centerX, centerY, size, character.team === "enemy");
+        } else {
+            CharacterRenderer.drawBug(ctx, centerX, centerY, size, character.team === "enemy");
+        }
+
+        // Отрисовка HP и имени
+        this.drawCharacterUI(ctx, character, centerX, centerY, size);
+    }
+
+    drawCharacterUI(ctx, character, x, y, size) {
+        // Полоска HP
+        const hpBarWidth = size * 0.82;
+        const hpBarHeight = 20;
+        const hpBarY = y - 90;
+
+        // Фон HP
+        ctx.fillStyle = 'rgba(51, 51, 51, 1)';
+        ctx.fillRect(x - hpBarWidth / 2, hpBarY, hpBarWidth, hpBarHeight);
+
+        // Заполнение HP
+        const currentHp = (character.hp / character.maxHp) * hpBarWidth;
+        ctx.fillStyle = character.hp > character.maxHp * 0.8 ? 'rgb(36, 218, 43)' :
+            character.hp > character.maxHp * 0.33 ? 'rgba(255, 193, 7, 1)' :
+                'rgba(244, 67, 54, 1)';
+        ctx.fillRect(x - hpBarWidth / 2, hpBarY, currentHp, hpBarHeight);
+
+        // Имя
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 19px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(character.name, x, y - size / 1.35);
+    }
+
+    drawGrid() {
         this.ctx.strokeStyle = this.gridColor;
         this.ctx.lineWidth = 2;
 
         // Вертикальные линии
-        const firstVertical = Math.max(0, Math.floor(x / 200) * 200);
-        for (let lineX = firstVertical; lineX < x + width; lineX += 200) {
-            if (lineX > x && lineX < x + width) {
-                this.ctx.beginPath();
-                this.ctx.moveTo(lineX, y);
-                this.ctx.lineTo(lineX, y + height);
-                this.ctx.stroke();
-            }
+        for (let x = 0; x <= 1200; x += 200) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(x, 0);
+            this.ctx.lineTo(x, 800);
+            this.ctx.stroke();
         }
 
         // Горизонтальные линии
-        const firstHorizontal = Math.max(0, Math.floor(y / 200) * 200);
-        for (let lineY = firstHorizontal; lineY < y + height; lineY += 200) {
-            if (lineY > y && lineY < y + height) {
-                this.ctx.beginPath();
-                this.ctx.moveTo(x, lineY);
-                this.ctx.lineTo(x + width, lineY);
-                this.ctx.stroke();
-            }
+        for (let y = 0; y <= 800; y += 200) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, y);
+            this.ctx.lineTo(1200, y);
+            this.ctx.stroke();
         }
-
-        this.ctx.restore();
     }
-
-
-    drawCharacter(x, y, character, isEnemy = false) {
-        // Константы для настройки полоски HP
-        const HP_BAR_WIDTH_PERCENT = 82; // % от размера персонажа
-        const HP_BAR_HEIGHT = 20;        // Высота полоски в пикселях
-        const HP_BAR_Y_OFFSET = 90;      // Отступ сверху от центра персонажа
-        const NAME_Y_OFFSET = 1.35;       // Множитель для позиционирования имени
-
-        const size = 140;
-        const posX = isEnemy ? x - 100 : x + 100;
-
-        // Рассчитываем размеры полоски HP
-        const hpBarWidth = size * (HP_BAR_WIDTH_PERCENT / 100);
-        const hpBarX = posX - hpBarWidth / 2;
-        const hpBarY = y - HP_BAR_Y_OFFSET;
-
-        // Рисуем персонажа
-        if (character.species === 'Орк') {
-            CharacterRenderer.drawOrc(this.ctx, posX, y, size, isEnemy);
-        } else {
-            CharacterRenderer.drawBug(this.ctx, posX, y, size, isEnemy);
-        }
-
-        // Имя персонажа
-        this.ctx.fillStyle = 'rgba(255, 255, 255, 1)';
-        this.ctx.font = 'bold 19px Arial';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText(character.name, posX, y - size / NAME_Y_OFFSET);
-
-        // Полоска HP (фон)
-        this.ctx.fillStyle = 'rgba(51, 51, 51, 1)';
-        this.ctx.fillRect(hpBarX, hpBarY, hpBarWidth, HP_BAR_HEIGHT);
-
-        // Полоска HP (заполнение)
-        const currentHpWidth = (character.hp / character.maxHp) * hpBarWidth;
-        this.ctx.fillStyle = character.hp > character.maxHp * 0.8 ? 'rgb(36, 218, 43)' :
-            character.hp > character.maxHp * 0.33 ? 'rgba(255, 193, 7, 1)' :
-                'rgba(244, 67, 54, 1)';
-        this.ctx.fillRect(hpBarX, hpBarY, currentHpWidth, HP_BAR_HEIGHT);
-    }
-
 }
 
 
 class Character {
     constructor(name, phrase, hp, attack, team) {
-        this.name = name
-        this.phrase = phrase
-        this._hp = hp
-        this.maxHp = hp
-        this.attack = attack
-        if (team == "friend" || team == "enemy")
-            this.team = team
-        else
-            throw new Error("Неверная команда!")
-
-        this._dirty = true; // Флаг необходимости перерисовки
+        this.name = name;
+        this.phrase = phrase;
+        this._hp = hp;
+        this.maxHp = hp;
+        this.attack = attack;
+        this.team = team === "friend" || team === "enemy" ? team :
+            (() => { throw new Error("Неверная команда!") })
+        this._dirty = true;
     }
 
-    get hp() {
-        return this._hp;
-    }
+    get hp() { return this._hp; }
 
     set hp(value) {
-        if (value !== this._hp) {
-            this._hp = Math.max(0, Math.min(value, this.maxHp));
+        const newHp = Math.max(0, Math.min(value, this.maxHp));
+        if (newHp !== this._hp) {
+            this._hp = newHp;
             this._dirty = true;
-            Battlefield.instance.requestCharacterRedraw(this);
+            Battlefield.instance.redrawCharacter(this);
         }
     }
 }
+
 
 class Orc extends Character {
     constructor(name, phrase, hp, attack, team = "friend") {
