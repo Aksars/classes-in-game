@@ -1,22 +1,57 @@
 class CharacterRenderer {
 
     static drawOrc(ctx, x, y, size, isEnemy = false) {
-        // Рисуем орка (голова + туловище)
         ctx.save();
 
+        // Цветовые настройки
+        const colors = {
+            body: isEnemy ? 'rgba(92, 61, 46, 1)' : 'rgb(25, 121, 67)',
+            hair: 'rgba(30, 30, 30, 1)',
+            eyeWhite: isEnemy ? 'rgba(255, 70, 70, 1)' : 'rgba(255, 255, 255, 1)',
+            pupil: 'rgba(20, 36, 2, 0.9)',
+            eyebrow: 'rgba(30, 30, 30, 0.9)',
+            mouth: 'rgba(104, 9, 9, 0.33)',
+            teeth: 'rgba(255, 255, 255, 1)',
+            axeHandle: 'rgba(100, 100, 100, 1)',
+            axeBlade: 'rgba(200, 200, 200, 1)',
+            axeEdge: 'rgba(150, 150, 150, 1)',
+            axeTexture: 'rgba(70, 70, 70, 1)'
+        };
+
+        // Основные части орка
+        this.drawBody(ctx, x, y, size, colors.body);
+        this.drawHead(ctx, x, y, size, colors.body); // Голова того же цвета, что и тело
+        this.drawHair(ctx, x, y, size, colors.hair);
+
+        // Детали лица        
+        this.drawFaceFeatures(ctx, x, y, size, isEnemy);        
+        this.drawMouth(ctx, x, y-5, size, isEnemy)
+
+        // Оружие
+        this.drawMace(ctx, x, y, isEnemy, colors.axeHandle, colors.axeBlade, colors.axeEdge, colors.axeTexture);
+
+        ctx.restore();
+    }
+
+    static drawBody(ctx, x, y, size, bodyColor) {
         // Туловище (эллипс)
-        ctx.fillStyle = isEnemy ? 'rgba(92, 61, 46, 1)' : 'rgb(25, 121, 67)';
+        ctx.fillStyle = bodyColor;
         ctx.beginPath();
         ctx.ellipse(x, y + size / 2, size / (2 + Math.random() / 1.2), size / 2, 0, 0, Math.PI * 2);
         ctx.fill();
+    }
 
+    static drawHead(ctx, x, y, size, headColor) {
         // Голова (круг)
+        ctx.fillStyle = headColor;
         ctx.beginPath();
         ctx.arc(x, y - size / 6, size / 3, 0, Math.PI * 2);
         ctx.fill();
+    }
 
-        // Волосы (15 треугольников с случайными наклонами)
-        ctx.fillStyle = 'rgba(30, 30, 30, 1)';
+    static drawHair(ctx, x, y, size, hairColor) {
+        // Волосы (500 треугольников с случайными наклонами)
+        ctx.fillStyle = hairColor;
         const hairCount = 500;
         const headRadius = size / 2.5;
         const headCenterX = x;
@@ -24,21 +59,18 @@ class CharacterRenderer {
         const hairLength = size / 2;
 
         for (let i = 0; i < hairCount; i++) {
-            // Угол расположения на голове
             const headAngle = Math.PI + (i / (hairCount - 1)) * Math.PI;
-
-            // Случайный угол наклона волоса (-30° до +30° от вертикали)
             const tiltAngle = (Math.random() - 0.5) * Math.PI / 2;
 
             // Точка крепления к голове
             const rootX = headCenterX + Math.cos(headAngle) * headRadius * 0.8;
             const rootY = headCenterY + Math.sin(headAngle) * headRadius * 0.8;
 
-            // Кончик волоса (с учетом наклона)
+            // Кончик волоса
             const tipX = rootX + Math.sin(tiltAngle) * hairLength * (0.8 + Math.random() * 0.5);
             const tipY = rootY - Math.cos(tiltAngle) * hairLength * (0.8 + Math.random() * 0.5);
 
-            // Боковые точки основания (перпендикулярно направлению волоса)
+            // Боковые точки основания
             const perpendicularAngle = tiltAngle + Math.PI / 2;
             const spread = headRadius * 0.15;
             const leftX = rootX + Math.cos(perpendicularAngle) * spread;
@@ -54,7 +86,7 @@ class CharacterRenderer {
             ctx.closePath();
             ctx.fill();
 
-            // Добавляем немного текстуры
+            // Текстура волос
             if (Math.random() > 0.3) {
                 ctx.strokeStyle = 'rgba(50, 50, 50, 0.4)';
                 ctx.lineWidth = 1;
@@ -64,52 +96,51 @@ class CharacterRenderer {
                 ctx.stroke();
             }
         }
+    }
 
-        // Конфигурация лица персонажа
+    static drawFaceFeatures(ctx, x, y, size, isEnemy) {
+        // Конфигурация лица (перенесено из оригинального кода)
         const FACE_SETTINGS = {
-            // Глаза
             eyes: {
                 radius: 12,
-                baseYOffset: -size / 6,  // Базовое смещение по Y
-                yRandomRange: 6,       // Случайное смещение по Y (-3..+3)
-                xRandomRange: 25,      // Случайное смещение по X (0..25)
+                baseYOffset: -size / 6,
+                yRandomRange: this.randomInteger(1,6),
+                xRandomRange: this.randomInteger(15,25),
                 enemyColor: 'rgba(255, 70, 70, 1)',
                 friendColor: 'rgba(255, 255, 255, 1)'
             },
-
-            // Зрачки
             pupils: {
-                radius: 5,
+                radius: this.randomInteger(0,14)<3?2: this.randomInteger(3,4),
                 color: 'rgba(20, 36, 2, 0.9)',
-                enemyOffset: -3,  // Косоглазие у врагов
-                friendOffset: 5    // Смотрят вперед у друзей
+                enemyOffset: -3,
+                friendOffset: 5
             },
-
-            // Брови
             eyebrows: {
                 thickness: 6,
                 color: 'rgba(30, 30, 30, 0.9)',
                 enemyYOffset: 20,
                 friendYOffset: 11.5,
-                length: size / randomInteger(10, 13),
-                leftAngle: randomInteger(0, 10) < 5 ? randomInteger(-3, -10) / 10 : randomInteger(0, 10) < 5 ? -0.3 : 0.1,  // Угол наклона левой брови
-                rightAngle: 0.2   // Угол наклона правой брови
+                length: size / this.randomInteger(10, 13),
+                leftAngle: this.randomInteger(0, 10) < 5 ? 
+                         this.randomInteger(-3, -10) / 10 : 
+                         this.randomInteger(0, 10) < 5 ? -0.3 : 0.1,
+                rightAngle: 0.2
             }
         };
-
-        // Рассчитываем позиции глаз со случайным смещением
+    
+        // Рассчитываем позиции глаз со случайным смещением 
         const leftEyeX = x - (FACE_SETTINGS.eyes.xRandomRange * Math.random());
         const rightEyeX = x + (FACE_SETTINGS.eyes.xRandomRange * Math.random());
         const eyesY = y + FACE_SETTINGS.eyes.baseYOffset +
-            (Math.random() * FACE_SETTINGS.eyes.yRandomRange - FACE_SETTINGS.eyes.yRandomRange / 2);
-
+                    (Math.random() * FACE_SETTINGS.eyes.yRandomRange - FACE_SETTINGS.eyes.yRandomRange / 2);
+    
         // Рисуем глаза
         ctx.fillStyle = isEnemy ? FACE_SETTINGS.eyes.enemyColor : FACE_SETTINGS.eyes.friendColor;
         ctx.beginPath();
         ctx.arc(leftEyeX, eyesY, FACE_SETTINGS.eyes.radius, 0, Math.PI * 2);
         ctx.arc(rightEyeX, eyesY, FACE_SETTINGS.eyes.radius, 0, Math.PI * 2);
         ctx.fill();
-
+    
         // Рисуем зрачки
         const pupilOffset = isEnemy ? FACE_SETTINGS.pupils.enemyOffset : FACE_SETTINGS.pupils.friendOffset;
         ctx.fillStyle = FACE_SETTINGS.pupils.color;
@@ -117,15 +148,15 @@ class CharacterRenderer {
         ctx.arc(leftEyeX + pupilOffset, eyesY, FACE_SETTINGS.pupils.radius, 0, Math.PI * 2);
         ctx.arc(rightEyeX + pupilOffset, eyesY, FACE_SETTINGS.pupils.radius, 0, Math.PI * 2);
         ctx.fill();
-
+    
         // Рисуем брови
         const eyebrowYBase = y + FACE_SETTINGS.eyes.baseYOffset;
         const eyebrowOffset = isEnemy ? FACE_SETTINGS.eyebrows.enemyYOffset : FACE_SETTINGS.eyebrows.friendYOffset;
-
+    
         ctx.strokeStyle = FACE_SETTINGS.eyebrows.color;
         ctx.lineWidth = FACE_SETTINGS.eyebrows.thickness;
         ctx.beginPath();
-
+    
         // Левая бровь (наклонная)
         ctx.moveTo(
             leftEyeX - 10 + Math.cos(FACE_SETTINGS.eyebrows.leftAngle) * FACE_SETTINGS.eyebrows.length,
@@ -135,7 +166,7 @@ class CharacterRenderer {
             leftEyeX - 20,
             eyebrowYBase - 10
         );
-
+    
         // Правая бровь (наклонная)
         ctx.moveTo(
             rightEyeX - 5,
@@ -145,60 +176,83 @@ class CharacterRenderer {
             rightEyeX + Math.cos(FACE_SETTINGS.eyebrows.rightAngle) * FACE_SETTINGS.eyebrows.length + 5,
             eyebrowYBase - 12 + Math.sin(FACE_SETTINGS.eyebrows.rightAngle) * FACE_SETTINGS.eyebrows.length
         );
-
+    
         ctx.stroke();
+    }
 
-
-        // Рот (злой у врагов)
-        ctx.strokeStyle = 'rgba(104, 9, 9, 0.33)';
+    static drawMouth(ctx, x, y, size, isEnemy) {
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.33)';
         ctx.lineWidth = 2;
         ctx.beginPath();
+
         if (isEnemy) {
             // Злой оскал
-            ctx.arc(x, y + size / 12, 15, 0.2 * Math.PI, 0.8 * Math.PI);
-            // Зубы
+            const mouthCenterY = y + size / 12 - 15;
+            const mouthRadius = 15;
+            const mouthStartAngle = 0.2 * Math.PI;
+            const mouthEndAngle = 0.8 * Math.PI;
+            
+            // Рисуем дугу рта
+            ctx.beginPath();
+            ctx.arc(x, mouthCenterY, mouthRadius, mouthStartAngle, mouthEndAngle);
+            ctx.stroke();
+            
+            // Рисуем зубы по дуге
             ctx.fillStyle = 'rgba(255, 255, 255, 1)';
-            for (let i = 0; i < 4; i++) {
-                const toothX = x - 12 + i * 8;
-                ctx.fillRect(toothX, y + size / 12 - 5, 4, 5);
+            const toothCount = 4; // Количество зубов
+            const angleStep = (mouthEndAngle - mouthStartAngle) / (toothCount - 1);
+            
+            for (let i = 0; i < toothCount; i++) {
+                const angle = mouthStartAngle + i * angleStep;
+                const toothX = x + Math.cos(angle) * mouthRadius;
+                const toothY = mouthCenterY + Math.sin(angle) * mouthRadius;
+                
+                // Поворачиваем зубы по касательной к дуге
+                ctx.save();
+                ctx.translate(toothX, toothY);
+                ctx.rotate(angle + Math.PI/3); // Поворачиваем на 90° к углу дуги
+                
+                // Рисуем зуб 
+                ctx.beginPath();
+                ctx.moveTo(-3, 0);
+                ctx.lineTo(2, 0);
+                ctx.lineTo(0, -7); // Острый конец зуба
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.restore();
             }
         } else {
-            // Нейтральный рот
+            // Нейтральный рот (как было)
             ctx.moveTo(x - 15, y + size / 12);
             ctx.lineTo(x + 15, y + size / 12);
         }
         ctx.stroke();
+    }
 
-        ctx.restore();
-
-        // Рисуем топор с видом "анфас" под 45 градусов
+    static drawMace(ctx, x, y, isEnemy) {
         ctx.save();
 
-        // Позиция точки крепления топора
-        const gripX = isEnemy ? x - 40 : x + 40;  // Смещаем ближе к телу
-        const gripY = y + 35;  // Опускаем ниже для лучшего визуала
-
+        const gripX = isEnemy ? x - 40 : x + 40;
+        const gripY = y + 35;
         ctx.translate(gripX, gripY);
 
-        // Наклон 45 градусов (в радианах это Math.PI/4)
         const axeAngle = isEnemy ? +Math.PI / Math.random() * 1.2 : -Math.random() * 1.2;
         ctx.rotate(axeAngle);
 
-        // Ручка топора (3D-вид)
+        // Ручка топора
         ctx.fillStyle = 'rgba(100, 100, 100, 1)';
-        ctx.fillRect(0, -4, 80, 8);  // Более толстая и длинная ручка
+        ctx.fillRect(0, -4, 80, 8);
 
-        // Лезвие топора (вид анфас)
+        // Лезвие топора
         ctx.fillStyle = 'rgba(200, 200, 200, 1)';
         ctx.beginPath();
         if (isEnemy) {
-            // Лезвие для врага (слева)
             ctx.moveTo(-10, -20);
             ctx.lineTo(-40, -30);
             ctx.lineTo(-40, 30);
             ctx.lineTo(-10, 20);
         } else {
-            // Лезвие для игрока (справа)
             ctx.moveTo(80, -20);
             ctx.lineTo(110, -30);
             ctx.lineTo(110, 30);
@@ -207,7 +261,7 @@ class CharacterRenderer {
         ctx.closePath();
         ctx.fill();
 
-        // Детализация лезвия (острие)
+        // Острие лезвия
         ctx.fillStyle = 'rgba(150, 150, 150, 1)';
         ctx.beginPath();
         if (isEnemy) {
@@ -230,6 +284,10 @@ class CharacterRenderer {
         }
 
         ctx.restore();
+    }
+
+    static randomInteger(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
     static drawBug(ctx, x, y, size, isEnemy = false) {
@@ -265,11 +323,6 @@ class CharacterRenderer {
 
 }
 
-function randomInteger(min, max) {
-    // случайное число от min до (max+1)
-    let rand = min + Math.random() * (max + 1 - min);
-    return Math.floor(rand);
-}
 
 class Battlefield {
     static instance;
