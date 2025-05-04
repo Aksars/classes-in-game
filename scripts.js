@@ -73,10 +73,60 @@ class ColorHelper {
     }
 }
 
+
+class GraphicsHelper {
+    /**
+     * Рисует линию с центром в указанных координатах.
+     * @param {CanvasRenderingContext2D} ctx 
+     * @param {number} x - Центр по X
+     * @param {number} y - Центр по Y
+     * @param {object} params - Параметры линии {angle, length, thickness, xOffset, yOffset}
+     * @param {string} color - Цвет линии
+     */
+    static drawCenteredLine(ctx, x, y, params, color) {
+        const centerX = x + params.xOffset;
+        const centerY = y + params.yOffset;
+        const angleRad = params.angle * Math.PI / 180;
+        const halfLength = params.length / 2;
+
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = params.thickness;
+        ctx.beginPath();
+        ctx.moveTo(
+            centerX - Math.cos(angleRad) * halfLength,
+            centerY - Math.sin(angleRad) * halfLength
+        );
+        ctx.lineTo(
+            centerX + Math.cos(angleRad) * halfLength,
+            centerY + Math.sin(angleRad) * halfLength
+        );
+        ctx.stroke();
+        ctx.restore();
+    }
+}
+
+
 class OrcAppearance {
     constructor(size = 140, isEnemy = false, level) {
         this.size = size;
         this.isEnemy = isEnemy;
+        
+        this.emotionChances = {
+            calm: {
+                weight: 4,             
+            },
+            angry: {
+                weight: 4,               
+            },
+            sruprised: {
+                weight: 2,               
+            }
+        };
+        
+        this.emotion = this.getRandomEmotion()
+
+
         this.oneEye = Math.random() < 4 / 23;
 
         // Цвет волос на основе уровня
@@ -198,11 +248,24 @@ class OrcAppearance {
     }
 
     generateEyes() {
+        console.log(this.emotion)
+        let xRandomRange = 0
+        
+        if(this.emotion === "calm"){
+            xRandomRange = this.oneEye ? 0 : MathUtils.randomInteger(8, 25)
+        }
+        if(this.emotion === "sruprised"){
+            xRandomRange = this.oneEye ? 0 : MathUtils.randomInteger(13, 25)
+        }
+        if(this.emotion === "angry"){
+            xRandomRange = this.oneEye ? 0 : MathUtils.randomInteger(11, 25)    
+        }
+       
         return {
             radius: this.oneEye ? 14 : 12,
             baseYOffset: -this.size / 6,
             yRandomRange: this.oneEye ? 0 : MathUtils.randomInteger(-3, 3),
-            xRandomRange: this.oneEye ? 0 : MathUtils.randomInteger(8, 25),
+            xRandomRange: xRandomRange,
             color: this.colors.eyeWhite
         };
     }
@@ -217,46 +280,79 @@ class OrcAppearance {
         };
     }
 
-    generateEyebrows() {
-        const angleDegrees = 15; // Угол в градусах (положительный - вверх, отрицательный - вниз)
-        const angleRadians = angleDegrees * (Math.PI / 180); // Конвертируем в радианы
+  
+    getRandomEmotion() {
+        const totalWeight = Object.values(this.emotionChances).reduce((sum, e) => sum + e.weight, 0);
+        let random = Math.random() * totalWeight;
+        
+        for (const [emotion, config] of Object.entries(this.emotionChances)) {
+            if (random < config.weight) return emotion;
+            random -= config.weight;
+        }
+        
+        return 'calm';
+    }
 
-        // const leftAngle = MathUtils.randomInteger(0, 10) < 5
-        //     ? MathUtils.randomInteger(-3, -10) / 10
-        //     : MathUtils.randomInteger(0, 10) < 5 ? -0.3 : 0.1;
+    generateEyebrows() {     
+
+        let leftAngle = 0
+        let rightAngle = 0
+        let xOffsetL = 0
+        let yOffsetL = 0
+        let xOffsetR = 0
+        let yOffsetR = 0
+        
+        
+        if(this.emotion === "calm"){
+            leftAngle = MathUtils.randomInteger(-12, 12)
+            rightAngle = MathUtils.randomInteger(-12, 12)
+            xOffsetL = 0
+            yOffsetL = 0
+            xOffsetR = 0
+            yOffsetR = 0      
+        }
+        if(this.emotion === "sruprised"){
+            leftAngle = MathUtils.randomInteger(-15, -30) 
+            rightAngle = MathUtils.randomInteger(-5, -10) 
+            xOffsetL = -5 
+            yOffsetL = MathUtils.randomInteger(-5, -10)     
+            xOffsetR = -3 
+            yOffsetR = -3        
+        }
+        if(this.emotion === "angry"){
+            leftAngle = MathUtils.randomInteger(15, 23) 
+            rightAngle = -leftAngle
+            xOffsetL = 2 
+            yOffsetL = MathUtils.randomInteger(-1, -3)     
+            xOffsetR = -2 
+            yOffsetR = -3        
+        }
+       
         const length = this.size / 6
         return {
 
             left: {
-                angle: 26.565,  // Угол вверх
-                length: 40,
-                thickness: 3,
-                xOffset: 20,   // Сдвиг влево от центра
-                yOffset: 0,     // Без смещения по Y
+                angle: leftAngle,  // Угол
+                length: length,    // Длина брови
+                thickness: 5,       // Толщина брови
+                xOffset: 0 + xOffsetL,     // Сдвиг влево-вправо
+                yOffset: 0 + yOffsetL,     // Сдвиг вверх-вниз
             },
             right: {
-                angle: 26.565,  // Такой же угол, но будет отзеркален (180° - angle)
-                length: 40,
-                thickness: 3,
-                xOffset: 20,    // Сдвиг вправо от центра
-                yOffset: 0,
+                angle: rightAngle,  
+                length: length,
+                thickness: 5,
+                xOffset: 0 + xOffsetR,     // Сдвиг влево-вправо
+                yOffset: 0 + yOffsetR,     // Сдвиг вверх-вниз
             },
-            // left: {
-            //     angle: angleRadians,
-            //     length: length,
-            //     thickness: 6,
-            //     xOffset: -15,  // Смещение от центра глаза к носу
-            //     yOffset: this.isEnemy ? 20 : 11.5,
-            //     direction: 1   // Направление рисования (1 - от носа к виску)
-            // },
-            // right: {
-            //     angle: angleRadians,  // Тот же угол!
-            //     length: length + 10,
-            //     thickness: 6,
-            //     xOffset: -15,
-            //     yOffset: this.isEnemy ? 20 : 11.5,
-            //     direction: -1  // Отрицательное направление для правой брови
-            // },
+            single: {
+                angle: 5,  
+                length: length*1.5,
+                thickness: 5,
+                xOffset: 0,    
+                yOffset: MathUtils.randomInteger(2, -6),
+            },
+           
             color: this.colors.eyebrow
 
         };
@@ -411,9 +507,11 @@ class OrcRenderer extends CharacterRenderer {
             );
             ctx.fill();
         });
+        
     }
 
     static _getEyePositions(eyes) {
+        
         if (eyes.oneEye) {
             return [{ x: 0, y: eyes.baseYOffset }];
         }
@@ -425,57 +523,44 @@ class OrcRenderer extends CharacterRenderer {
 
     static drawEyebrows(ctx, x, y, appearance) {
         const eyes = appearance.face.eyes;
+        
         const eyebrows = appearance.face.eyebrows;
         //console.log(eyebrows)
         const oneEye = appearance.face.oneEye;
 
-        const eyePositions = this._getEyePositions(eyes);
-        const eyebrowYBase = y + eyes.baseYOffset;
+        const eyePositions = oneEye? [{ x: 0, y: eyes.baseYOffset }]: [
+            { x: -eyes.xRandomRange, y: eyes.baseYOffset },
+            { x: eyes.xRandomRange, y: eyes.baseYOffset + eyes.yRandomRange }
+        ]        
 
         ctx.strokeStyle = eyebrows.color;
-        ctx.lineCap = 'round'; // Чтобы концы бровей были закругленные
+        
+
+        const { left, right, color, single } = eyebrows;
 
         if (oneEye) {
-            ctx.lineWidth = MathUtils.randomInteger(eyebrows.left.thickness, eyebrows.right.thickness);
-            ctx.beginPath();
-            ctx.moveTo(x - 15, eyebrowYBase - eyebrows.yOffset);
-            ctx.lineTo(
-                x + Math.cos(eyebrows.rightAngle) * eyebrows.length + 5,
-                eyebrowYBase - 15 + Math.sin(eyebrows.rightAngle) * eyebrows.length
-            );
-            ctx.stroke();
-        } else {
-
-            const { left, right, color } = eyebrows;
-            // Сохраняем текущее состояние контекста (стили, трансформации)
-           
-
-            ctx.save();
-            ctx.strokeStyle = color;
+            const singleBrow = { ...single }; // Копируем, чтобы не менять исходный объект
         
-            // Левая линия (оригинальный угол)
-            ctx.lineWidth = left.thickness;
-            ctx.beginPath();
-            const leftEndX = x + Math.cos(left.angle * Math.PI / 180) * left.length;
-            const leftEndY = y + Math.sin(left.angle * Math.PI / 180) * left.length;
-            ctx.moveTo(x + left.xOffset, y + left.yOffset);
-            ctx.lineTo(leftEndX + left.xOffset, leftEndY + left.yOffset);
-            ctx.stroke();
-        
-            // Правая линия (зеркальный угол)
-            ctx.lineWidth = right.thickness;
-            ctx.beginPath();
-            const rightEndX = x + Math.cos((180 - right.angle) * Math.PI / 180) * right.length;
-            const rightEndY = y + Math.sin((180 - right.angle) * Math.PI / 180) * right.length;
-            ctx.moveTo(x + right.xOffset, y + right.yOffset);
-            ctx.lineTo(rightEndX + right.xOffset, rightEndY + right.yOffset);
-            ctx.stroke();
-
+            // Центрируем относительно единственного глаза
+            singleBrow.xOffset += eyePositions[0].x;
+            singleBrow.yOffset += eyePositions[0].y - 15; // Сдвиг вверх
             
-        
-            ctx.restore();
-
+            // Рисуем одну бровь (например, горизонтальную или специальную форму)
+            GraphicsHelper.drawCenteredLine(ctx, x, y, singleBrow, color);
+        } else {
+            ctx.lineCap = 'round'; // Чтобы концы бровей были закругленные
+            // Для двух глаз — брови над каждым глазом
+            left.xOffset += eyePositions[0].x;  // Добавляем позицию глаза к базовому смещению
+            left.yOffset += eyePositions[0].y - 10;
+            
+            right.xOffset += eyePositions[1].x;
+            right.yOffset += eyePositions[1].y - 10;
+            GraphicsHelper.drawCenteredLine(ctx, x, y, left, color);
+            GraphicsHelper.drawCenteredLine(ctx, x, y, right, color);
         }
+    
+        ctx.restore();
+     
     }
 
 
