@@ -782,7 +782,7 @@ class BugRenderer extends CharacterRenderer {
             legs: 'rgba(26, 18, 11, 1)',
             jawBase: 'rgba(26, 10, 0, 1)',
             jawStroke: 'rgba(0, 0, 0, 1)',
-            jawDetails: 'rgba(193, 24, 24, 0.17)',
+            jawDetails: 'rgba(193, 24, 24, 0.20)',
             head: 'rgba(26, 18, 11, 0.74)',
             eyeGradientStart: isEnemy ? 'rgba(255, 0, 0, 1)' : 'rgba(102, 102, 102, 0.7)',
             eyeGradientEnd: isEnemy ? 'rgba(136, 0, 0, 1)' : 'rgba(255, 255, 255, 0.7)',
@@ -884,7 +884,7 @@ class BugRenderer extends CharacterRenderer {
         ctx.arc(0, -bodyWidth / 2 - headSize / 2, headSize, 0, Math.PI * 2);
         ctx.fill();
 
-        // Глаза (злые, со светящимся эффектом)
+        // Глаза (со светящимся эффектом)
         const eyeGradient = ctx.createRadialGradient(
             -headSize / 3, -bodyWidth / 2 - headSize / 1.8, 1,
             -headSize / 3, -bodyWidth / 2 - headSize / 1.8, headSize / 4
@@ -1159,12 +1159,19 @@ class Battlefield {
 }
 
 
+
+
 class Character {
     constructor(name, phrase, hp, attack, team) {
         this.name = name;
         this.phrase = phrase;
-        this._hp = hp;
+        // сколько здоровья на 1 уровне
+        this.lvl1HP =hp
+        // сколько здоровья максимум сейчас
         this.maxHp = hp;
+        // текущее здоровье, работает через геттер get hp(){}
+        this._hp = hp;
+        
         this.attack = attack;
         this.team = team;
     }
