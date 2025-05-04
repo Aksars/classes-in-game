@@ -111,31 +111,40 @@ class OrcAppearance {
     constructor(size = 140, isEnemy = false, level) {
         this.size = size;
         this.isEnemy = isEnemy;
-        
+
         this.emotionChances = {
             calm: {
-                weight: 4,             
+                weight: 4,
             },
             angry: {
-                weight: 4,               
+                weight: 2,
             },
             sruprised: {
-                weight: 2,               
+                weight: 3,
             }
         };
-        
-        this.emotion = this.getRandomEmotion()
+
+        this.emotion = this.getRandomEmotion(this.emotionChances)
 
 
         this.oneEye = Math.random() < 4 / 23;
 
+        this.generateColors(level, isEnemy)
+        this.generateBody();
+        this.generateFace();
+        this.generateHair();
+        this.generateWeapon();
+    }
+
+    generateColors(level, isEnemy){
+        
         // Цвет волос на основе уровня
         const hairColor = this.calculateHairColor(level)
         // Цвет бровей -- цвет волос только на 0.15 прозрачнее
         const eyebrowColor = ColorHelper.adjustColorAlpha(hairColor, 0.85);
         // Цвет глаз -- цвет волос только на 0.05 прозрачнее
         const pupilColor = ColorHelper.betweenColors(hairColor, 'rgb(20, 36, 2)', 65);
-        const friendColor = ColorHelper.betweenColors('rgb(39, 149, 86)', 'rgb(4, 49, 23)', MathUtils.randomInteger(1, 100));
+        const friendColor = ColorHelper.betweenColors('rgb(39, 149, 86)', 'rgb(8, 92, 43)', MathUtils.randomInteger(1, 100));
         const enemyColor = 'rgb(92, 61, 46)'
 
         this.colors = {
@@ -153,11 +162,6 @@ class OrcAppearance {
                 texture: 'rgba(70, 70, 70, 1)'
             }
         };
-
-        this.generateBody();
-        this.generateFace();
-        this.generateHair();
-        this.generateWeapon();
     }
 
     // Метод для расчета цвета волос в зависимости от уровня
@@ -166,7 +170,7 @@ class OrcAppearance {
 
         // без прозрачности
         const hairColorPresets = {
-            colorStop1: 'rgb(30, 30, 30)',       // Уровень 1
+            colorStop1: 'rgb(60, 40, 4)',       // Уровень 1
             colorStop2: 'rgb(210, 180, 60)',     // Уровень 30
             colorStop3: 'rgb(180, 65, 30)',      // Уровень 50
             colorStop4: 'rgb(19, 109, 227))',    // Уровень 51
@@ -216,7 +220,8 @@ class OrcAppearance {
 
     generateBody() {
         this.body = {
-            bodyColor: this.colors.body
+            bodyColor: this.colors.body,
+            bodyWidth: (2 + Math.random() / 1.2)
         };
     }
 
@@ -225,7 +230,7 @@ class OrcAppearance {
             type: 'mace',
             offsetX: this.isEnemy ? 0 : MathUtils.randomInteger(-10, 2),
             offsetY: this.isEnemy ? 0 : MathUtils.randomInteger(10, 25),
-            angle: this.isEnemy ? Math.PI / 1.2 : -1.2,
+            angle: this.isEnemy ? +Math.PI / Math.random() * 1.2 : -Math.random() * 1.2,
             colors: this.colors.weapon
         };
     }
@@ -248,19 +253,22 @@ class OrcAppearance {
     }
 
     generateEyes() {
-        console.log(this.emotion)
+        //console.log(this.emotion)
         let xRandomRange = 0
-        
-        if(this.emotion === "calm"){
+
+        if (this.emotion === "calm") {
             xRandomRange = this.oneEye ? 0 : MathUtils.randomInteger(8, 25)
         }
-        if(this.emotion === "sruprised"){
+        if (this.emotion === "sruprised") {
             xRandomRange = this.oneEye ? 0 : MathUtils.randomInteger(13, 25)
         }
-        if(this.emotion === "angry"){
-            xRandomRange = this.oneEye ? 0 : MathUtils.randomInteger(11, 25)    
+        if (this.emotion === "angry") {
+            xRandomRange = this.oneEye ? 0 : MathUtils.randomInteger(11, 25)
         }
-       
+        if (this.emotion === "damaged") {
+            xRandomRange = this.oneEye ? 0 : MathUtils.randomInteger(11, 25)
+        }
+
         return {
             radius: this.oneEye ? 14 : 12,
             baseYOffset: -this.size / 6,
@@ -280,20 +288,20 @@ class OrcAppearance {
         };
     }
 
-  
-    getRandomEmotion() {
-        const totalWeight = Object.values(this.emotionChances).reduce((sum, e) => sum + e.weight, 0);
+
+    getRandomEmotion(emotionChances) {
+        const totalWeight = Object.values(emotionChances).reduce((sum, e) => sum + e.weight, 0);
         let random = Math.random() * totalWeight;
-        
-        for (const [emotion, config] of Object.entries(this.emotionChances)) {
+
+        for (const [emotion, config] of Object.entries(emotionChances)) {
             if (random < config.weight) return emotion;
             random -= config.weight;
         }
-        
+
         return 'calm';
     }
 
-    generateEyebrows() {     
+    generateEyebrows() {
 
         let leftAngle = 0
         let rightAngle = 0
@@ -301,74 +309,118 @@ class OrcAppearance {
         let yOffsetL = 0
         let xOffsetR = 0
         let yOffsetR = 0
-        
-        
-        if(this.emotion === "calm"){
+        let thickness = MathUtils.randomInteger(4, 6)
+
+
+        if (this.emotion === "calm") {
             leftAngle = MathUtils.randomInteger(-12, 12)
             rightAngle = MathUtils.randomInteger(-12, 12)
             xOffsetL = 0
             yOffsetL = 0
             xOffsetR = 0
-            yOffsetR = 0      
+            yOffsetR = 0
+            thickness = thickness
         }
-        if(this.emotion === "sruprised"){
-            leftAngle = MathUtils.randomInteger(-15, -30) 
-            rightAngle = MathUtils.randomInteger(-5, -10) 
-            xOffsetL = -5 
-            yOffsetL = MathUtils.randomInteger(-5, -10)     
-            xOffsetR = -3 
-            yOffsetR = -3        
+        if (this.emotion === "sruprised") {
+            leftAngle = MathUtils.randomInteger(-15, -30)
+            rightAngle = MathUtils.randomInteger(-5, -10)
+            xOffsetL = -5
+            yOffsetL = MathUtils.randomInteger(-5, -10)
+            xOffsetR = -3
+            yOffsetR = -3
+            thickness = thickness
         }
-        if(this.emotion === "angry"){
-            leftAngle = MathUtils.randomInteger(15, 23) 
+        if (this.emotion === "angry") {
+            leftAngle = MathUtils.randomInteger(15, 23)
             rightAngle = -leftAngle
-            xOffsetL = 2 
-            yOffsetL = MathUtils.randomInteger(-1, -3)     
-            xOffsetR = -2 
-            yOffsetR = -3        
+            xOffsetL = 2
+            yOffsetL = MathUtils.randomInteger(-1, -3)
+            xOffsetR = -2
+            yOffsetR = -3
+            thickness = thickness
         }
-       
+        if (this.emotion === "damaged") {
+            leftAngle = MathUtils.randomInteger(15, 30)
+            rightAngle = -leftAngle + MathUtils.randomInteger(-5, 5)
+            xOffsetL = 2
+            yOffsetL = MathUtils.randomInteger(-1, -3)
+            xOffsetR = -2
+            yOffsetR = -0
+            thickness = thickness + 1
+        }
+
+
         const length = this.size / 6
         return {
 
             left: {
                 angle: leftAngle,  // Угол
                 length: length,    // Длина брови
-                thickness: 5,       // Толщина брови
+                thickness: thickness,       // Толщина брови
                 xOffset: 0 + xOffsetL,     // Сдвиг влево-вправо
                 yOffset: 0 + yOffsetL,     // Сдвиг вверх-вниз
             },
             right: {
-                angle: rightAngle,  
+                angle: rightAngle,
                 length: length,
-                thickness: 5,
+                thickness: thickness,
                 xOffset: 0 + xOffsetR,     // Сдвиг влево-вправо
                 yOffset: 0 + yOffsetR,     // Сдвиг вверх-вниз
             },
             single: {
-                angle: 5,  
-                length: length*1.5,
-                thickness: 5,
-                xOffset: 0,    
+                angle: 5,
+                length: length * 1.6,
+                thickness: thickness + 2,
+                xOffset: 0,
                 yOffset: MathUtils.randomInteger(2, -6),
             },
-           
+
             color: this.colors.eyebrow
 
         };
     }
 
     generateMouth() {
+
+        let thickness = 2
+        let yOffset = MathUtils.randomInteger(1, -2)
+        let xOffset = MathUtils.randomInteger(2, -2)
+
+        if (this.emotion === "calm") {
+
+        }
+        if (this.emotion === "sruprised") {
+
+        }
+        if (this.emotion === "angry") {
+
+        }
+        if (this.emotion === "damaged") {
+            thickness = 3
+            yOffset = MathUtils.randomInteger(-1, -2)
+        }
+
         return {
             type: this.isEnemy ? 'aggressive' : 'neutral',
             color: this.colors.mouth,
-            teethColor: this.colors.teeth
+            teethColor: this.colors.teeth,
+            yOffset: yOffset,
+            xOffset: xOffset,
+            thickness: thickness
         };
     }
 
     regenerateFace() {
-        this.oneEye = Math.random() < 4 / 23;
-        this.generateFace();
+        //this.oneEye = Math.random() < 4 / 23;        
+        this.face.eyes = this.generateEyes()
+        this.face.pupils = this.generatePupils()
+        this.face.eyebrows = this.generateEyebrows()
+        this.face.mouth = this.generateMouth()
+    }
+    regenerateHair(){
+        this.generateHair()
+        this.face.eyebrows = this.generateEyebrows()
+        this.face.pupils = this.generatePupils()
     }
 }
 
@@ -429,9 +481,10 @@ class OrcRenderer extends CharacterRenderer {
 
     static drawBody(ctx, x, y, appearance) {
         const size = appearance.size
+        const bodyWidth = appearance.body.bodyWidth
         ctx.fillStyle = appearance.body.bodyColor;
         ctx.beginPath();
-        ctx.ellipse(x, y + size / 2, size / (2 + Math.random() / 1.2), size / 2, 0, 0, Math.PI * 2);
+        ctx.ellipse(x, y + size / 2, size / bodyWidth, size / 2, 0, 0, Math.PI * 2);
         ctx.fill();
     }
 
@@ -507,11 +560,29 @@ class OrcRenderer extends CharacterRenderer {
             );
             ctx.fill();
         });
-        
+
+        // this.animationSpeed = 0.05
+
+        //  // Анимируем зрачки
+        //  const pupilXOffset = Math.sin(time * this.animationSpeed) * 3; // -3..+3
+        //  const pupilYOffset = Math.cos(time * this.animationSpeed * 0.7) * 2; // -2..+2
+
+        //  ctx.fillStyle = pupilColor;
+        //  eyePositions.forEach(eye => {
+        //      ctx.beginPath();
+        //      ctx.arc(
+        //          x + eye.x + pupils.offset + pupilXOffset,
+        //          y + eye.y + pupils.verticalOffset + pupilYOffset,
+        //          pupils.radius,
+        //          0,
+        //          Math.PI * 2
+        //      );
+        //      ctx.fill();
+        //  });
     }
 
     static _getEyePositions(eyes) {
-        
+
         if (eyes.oneEye) {
             return [{ x: 0, y: eyes.baseYOffset }];
         }
@@ -523,44 +594,46 @@ class OrcRenderer extends CharacterRenderer {
 
     static drawEyebrows(ctx, x, y, appearance) {
         const eyes = appearance.face.eyes;
-        
+
         const eyebrows = appearance.face.eyebrows;
         //console.log(eyebrows)
         const oneEye = appearance.face.oneEye;
 
-        const eyePositions = oneEye? [{ x: 0, y: eyes.baseYOffset }]: [
+        const eyePositions = oneEye ? [{ x: 0, y: eyes.baseYOffset }] : [
             { x: -eyes.xRandomRange, y: eyes.baseYOffset },
             { x: eyes.xRandomRange, y: eyes.baseYOffset + eyes.yRandomRange }
-        ]        
+        ]
 
         ctx.strokeStyle = eyebrows.color;
-        
 
-        const { left, right, color, single } = eyebrows;
+        // делаем копию настроек чтоб не менять оригинальные
+        const eyebrowsCopy = JSON.parse(JSON.stringify(eyebrows))
+        const { left, right, color, single } = eyebrowsCopy;
 
         if (oneEye) {
-            const singleBrow = { ...single }; // Копируем, чтобы не менять исходный объект
-        
+            const singleBrow = single; // Копируем, чтобы не менять исходный объект
+
             // Центрируем относительно единственного глаза
             singleBrow.xOffset += eyePositions[0].x;
             singleBrow.yOffset += eyePositions[0].y - 15; // Сдвиг вверх
-            
+
             // Рисуем одну бровь (например, горизонтальную или специальную форму)
             GraphicsHelper.drawCenteredLine(ctx, x, y, singleBrow, color);
         } else {
+
             ctx.lineCap = 'round'; // Чтобы концы бровей были закругленные
             // Для двух глаз — брови над каждым глазом
             left.xOffset += eyePositions[0].x;  // Добавляем позицию глаза к базовому смещению
             left.yOffset += eyePositions[0].y - 10;
-            
+
             right.xOffset += eyePositions[1].x;
             right.yOffset += eyePositions[1].y - 10;
             GraphicsHelper.drawCenteredLine(ctx, x, y, left, color);
             GraphicsHelper.drawCenteredLine(ctx, x, y, right, color);
         }
-    
+
         ctx.restore();
-     
+
     }
 
 
@@ -569,9 +642,14 @@ class OrcRenderer extends CharacterRenderer {
         const isEnemy = appearance.isEnemy;
         const mouth = appearance.face.mouth;
 
+        const offsetX = mouth.xOffset
+        const offsetY = mouth.yOffset
+        const thickness = mouth.thickness
+
         ctx.strokeStyle = mouth.color;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = thickness;
         ctx.beginPath();
+        ctx.lineCap = 'round'
 
         if (isEnemy) {
             // Злой оскал
@@ -609,8 +687,8 @@ class OrcRenderer extends CharacterRenderer {
             }
         } else {
             // Нейтральный рот
-            ctx.moveTo(x - 15, y + size / 12);
-            ctx.lineTo(x + 15, y + size / 12);
+            ctx.moveTo(x - 15 + offsetX, y + size / 12 + offsetY);
+            ctx.lineTo(x + 15 + offsetX, y + size / 12 + offsetY);
             ctx.stroke();
         }
     }
@@ -618,14 +696,13 @@ class OrcRenderer extends CharacterRenderer {
     static drawMace(ctx, x, y, appearance) {
         const isEnemy = appearance.isEnemy;
         const weapon = appearance.weapon;
-
+        const weaponAngle = appearance.weapon.angle
         ctx.save();
         const gripX = isEnemy ? x - 40 : x + 40 + weapon.offsetX;
         const gripY = y + 35 + weapon.offsetY;
         ctx.translate(gripX, gripY);
 
-        const axeAngle = isEnemy ? +Math.PI / Math.random() * 1.2 : -Math.random() * 1.2;
-        ctx.rotate(axeAngle);
+        ctx.rotate(weaponAngle);
 
         // Ручка топора
         ctx.fillStyle = weapon.colors.handle;
@@ -833,7 +910,7 @@ class Battlefield {
 
     drawCharacterUI(ctx, character, x, y) {
         const size = character.appearance.size;
-
+        //console.log(character.appearance)
         // Полоска HP
         const hpBarWidth = size * 0.82;
         const hpBarHeight = 20;
@@ -850,6 +927,44 @@ class Battlefield {
                 'rgba(244, 67, 54, 1)';
         ctx.fillRect(x - hpBarWidth / 2, hpBarY, currentHp, hpBarHeight);
 
+        // Текст HP (белый с чёрной обводкой для лучшей читаемости)
+        const hpText = `${Math.round(character.hp)}/${character.maxHp}`;
+        ctx.font = 'bold 15px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        // Белый текст поверх
+        ctx.fillStyle = 'white';
+        ctx.fillText(hpText, x, hpBarY + hpBarHeight / 2 + 1);
+
+        // Круг уровня
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.66)'; // Фон круга
+        ctx.beginPath();
+        ctx.arc(x - hpBarWidth / 2 - 15, hpBarY + hpBarHeight / 2, 25, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = 'bold 22px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Тень (имитация обводки)
+        ctx.shadowColor = 'black';
+        ctx.shadowBlur = 1; // Размытие
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        
+        // Основной текст
+        ctx.fillStyle = character.appearance.hair.color;
+        ctx.fillText(character.level, x - hpBarWidth / 2 - 15, hpBarY + hpBarHeight / 2 + 1);
+        
+        // Отключаем тень для остального кода
+        ctx.shadowBlur = 0;
+        // // Чёрная обводка текста
+        // ctx.strokeStyle = 'black';
+        // ctx.lineWidth = 3;
+        // ctx.strokeText(hpText, x, hpBarY + hpBarHeight / 2);
+        ctx.font = 'bold 16px Arial';
+
+        
         // Имя
         ctx.fillStyle = 'white';
         ctx.font = 'bold 19px Arial';
@@ -895,10 +1010,30 @@ class Character {
     set hp(value) {
         const newHp = Math.max(0, Math.min(value, this.maxHp));
         if (newHp !== this._hp) {
+            const oldHp = this._hp;
             this._hp = newHp;
-            if (newHp < this._hp) {
-                // Регенерируем только лицо при получении урона
-                this.appearance.regenerateFace();
+            // Регенерируем только лицо при получении урона
+            if (newHp < oldHp) {
+                // Шансы эмоций на лице у персонажа чем больше число тем выше шанс
+                const emotionChances = {
+                    calm: {
+                        weight: 1,
+                    },
+                    angry: {
+                        weight: 4,
+                    },
+                    sruprised: {
+                        weight: 3,
+                    },
+                    damaged: {
+                        weight: 8,
+                    }
+                };
+                this.appearance.emotion = this.appearance.getRandomEmotion(emotionChances)
+                console.log(this.appearance.emotion)
+
+                this.appearance.generateWeapon()
+                this.appearance.regenerateFace()
             }
             this.redraw();
         }
@@ -906,6 +1041,12 @@ class Character {
 
     set level(value) {
         this._level = value
+        let newColor = this.appearance.calculateHairColor(value)
+        this.appearance.colors.hair=  newColor
+        this.appearance.colors.eyebrow =newColor
+        this.appearance.regenerateHair()
+        // this.appearance.generateHair();
+        // this.appearance.face.eyebrows = this.appearance.generateEyebrows();
         this.redraw()
     }
 
@@ -914,7 +1055,7 @@ class Character {
     }
 
     redraw() {
-        Battlefield.instance?.drawCharacter(this);
+        Battlefield.instance.drawCharacter(this);
     }
 }
 class Orc extends Character {
@@ -964,6 +1105,6 @@ const orc2 = new Orc("Разогр", "Опять работать!", 100, 4)
 const orc3 = new Orc("Гаррош", "Я принёс только смерть!", 150, 5)
 
 const orc4 = new Orc("Ренер", "Я принёс только смерть!", 150, 5, "enemy")
-const bug1 = new Bug("Жучара", "---------*зловеще молчит*----------", 50, 3, "enemy")
-const bug2 = new Bug("Васян", "*ZZZZZZZZZZZZZZZZZZZ*", 50, 3, "enemy")
+const bug5 = new Bug("Жучара", "---------*зловеще молчит*----------", 50, 3, "enemy")
+const bug6 = new Bug("Васян", "*ZZZZZZZZZZZZZZZZZZZ*", 50, 3, "enemy")
 
