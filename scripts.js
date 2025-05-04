@@ -125,8 +125,6 @@ class OrcAppearance {
         };
 
         this.emotion = this.getRandomEmotion(this.emotionChances)
-
-
         this.oneEye = Math.random() < 4 / 23;
 
         this.generateColors(level, isEnemy)
@@ -136,16 +134,16 @@ class OrcAppearance {
         this.generateWeapon();
     }
 
-    generateColors(level, isEnemy){
-        
+    generateColors(level, isEnemy) {
+
         // Цвет волос на основе уровня
         const hairColor = this.calculateHairColor(level)
-        // Цвет бровей -- цвет волос только на 0.15 прозрачнее
-        const eyebrowColor = ColorHelper.adjustColorAlpha(hairColor, 0.85);
-        // Цвет глаз -- цвет волос только на 0.05 прозрачнее
-        const pupilColor = ColorHelper.betweenColors(hairColor, 'rgb(20, 36, 2)', 65);
+        // Цвета бровей и зрачков на основе цвета волос   
+        const eyebrowColor = this.getEyebrowColor(hairColor);
+        const pupilColor = this.getPupilColor(hairColor);
+        // Цвет тела случано в промежутках
         const friendColor = ColorHelper.betweenColors('rgb(39, 149, 86)', 'rgb(8, 92, 43)', MathUtils.randomInteger(1, 100));
-        const enemyColor = 'rgb(92, 61, 46)'
+        const enemyColor = ColorHelper.betweenColors('rgb(92, 61, 46)', 'rgb(132, 38, 20)', MathUtils.randomInteger(1, 100));
 
         this.colors = {
             body: isEnemy ? enemyColor : friendColor,
@@ -162,6 +160,14 @@ class OrcAppearance {
                 texture: 'rgba(70, 70, 70, 1)'
             }
         };
+    }
+    // Цвет бровей -- цвет волос только на 0.15 прозрачнее
+    getPupilColor(hairColor) {
+        return ColorHelper.betweenColors(hairColor, 'rgb(20, 36, 2)', 65);
+    }
+    // Цвет глаз -- цвет волос только на 0.05 прозрачнее
+    getEyebrowColor(hairColor) {
+        return ColorHelper.adjustColorAlpha(hairColor, 0.85)
     }
 
     // Метод для расчета цвета волос в зависимости от уровня
@@ -417,14 +423,18 @@ class OrcAppearance {
         this.face.eyebrows = this.generateEyebrows()
         this.face.mouth = this.generateMouth()
     }
-    regenerateHair(){
-        this.generateHair()
+    regenerateHair(level) {
+        let newColor = this.calculateHairColor(level)
+        this.colors.hair = newColor
+        this.hair.color = newColor
+        this.colors.eyebrow = this.getEyebrowColor(newColor)
+        this.colors.pupil = this.getPupilColor(newColor)
+        console.log()
+        // this.generateHair()
         this.face.eyebrows = this.generateEyebrows()
         this.face.pupils = this.generatePupils()
     }
 }
-
-
 
 class CharacterRenderer {
     static drawCharacter(ctx, x, y, appearance, species) {
@@ -755,75 +765,229 @@ class OrcRenderer extends CharacterRenderer {
 class BugRenderer extends CharacterRenderer {
 
     static draw(ctx, x, y, appearance) {
-        // ctx.save();
+
+
         // this.drawBodyParts(ctx, x, y, appearance);
-        // this.drawFacialFeatures(ctx, x, y, appearance);
+        // //this.drawFace(ctx, x, y, appearance);
+        // this.drawSpikes(ctx, x, y, appearance);  // Шипы на спине
+        // this.drawClaws(ctx, x, y, appearance);   // Клешни/лапы
+        // this.drawWings(ctx, x, y, appearance);   // Крылья (опционально)
         // ctx.restore();
-    }
+        appearance.calculateHairColor(20)
+        const isEnemy = appearance.isEnemy;
+        // Объект с цветами в RGBA формате
+        const beetleColors = {
+            bodyMain: isEnemy ? 'rgba(61, 41, 26, 0.7)' : 'rgba(102, 102, 102, 0.7)',
+            bodyStroke: 'rgba(90, 58, 32, 0.7)',
+            legs: 'rgba(26, 18, 11, 1)',
+            jawBase: 'rgba(26, 10, 0, 1)',
+            jawStroke: 'rgba(0, 0, 0, 1)',
+            jawDetails: 'rgba(193, 24, 24, 0.17)',
+            head: 'rgba(26, 18, 11, 0.74)',
+            eyeGradientStart: isEnemy ? 'rgba(255, 0, 0, 1)' : 'rgba(102, 102, 102, 0.7)',
+            eyeGradientEnd: isEnemy ? 'rgba(136, 0, 0, 1)' : 'rgba(255, 255, 255, 0.7)',
+            pupils: 'rgba(0, 0, 0, 1)',
+            eyeShine: 'rgb(171, 171, 171)',
+            antennae: 'rgba(182, 182, 182, 0.55)',
+            plates: 'rgb(48, 26, 9)',
+            wings: isEnemy ? 'rgba(61, 41, 26, 0.7)' : 'rgba(102, 102, 102, 0.7)',
+            wingStroke: 'rgba(90, 58, 32, 1)'
+        };
 
-    static drawBodyParts(ctx, x, y, character) {
-        // const { appearance } = character;
+        let isFacingRight = !appearance.isEnemy;
+        let size = 140;
 
-        // // Тело жука
-        // ctx.fillStyle = appearance.colors.carapace;
-        // this.drawCarapace(ctx, x, y, appearance.size);
+        // Сохраняем контекст для трансформаций
+        ctx.save();
 
-        // // Лапки
-        // this.drawLegs(ctx, x, y, appearance.size);
-    }
+        // Переносим начало координат и сразу поворачиваем на 90°
+        ctx.translate(x, y + 10);
+        ctx.rotate(Math.PI / 2); // 90° по часовой стрелке
 
-    static drawFacialFeatures(ctx, x, y, character) {
-        // const { appearance } = character;
+        // Отражаем жука, если он смотрит влево
+        if (!isFacingRight) {
+            ctx.translate(0, -30);
+            ctx.scale(1, -1);
+        }
 
-        // // Фасеточные глаза
-        // this.drawCompoundEyes(ctx, x, y, appearance);
+        // Размеры частей жука (пропорционально основному размеру)
+        const bodyWidth = size * 0.7;
+        const bodyHeight = size * 0.5;
+        const headSize = size * 0.25;
 
-        // // Челюсти
-        // this.drawMandibles(ctx, x, y, appearance.size, appearance.isEnemy);
-    }
+        // Ноги (острые и угрожающие)
+        ctx.strokeStyle = beetleColors.legs;
+        ctx.lineWidth = size * 0.04;
+        const legPairs = 3;
+        ctx.lineCap = 'round';
+        for (let i = 0; i < legPairs; i++) {
+            const offsetY = (i - 1) * (bodyHeight / 2.5);
+            const legLength = size * 0.3;
 
-    // Специфичные для жука методы
-    static drawCarapace(ctx, x, y, size) {
-        // Реализация рисования панциря
-    }
+            // Передние ноги более крупные
+            const frontMultiplier = i === 0 ? 1.1 : 1;
 
-    static drawBodyParts(ctx, x, y, character) {
+            // Левая сторона
+            ctx.beginPath();
+            ctx.moveTo(-bodyWidth / 2.5, offsetY);
+            ctx.lineTo(-bodyWidth / 2 - legLength * frontMultiplier, offsetY - legLength * 0.7);
+            ctx.stroke();
 
-    }
+            // Правая сторона
+            ctx.beginPath();
+            ctx.moveTo(bodyWidth / 2.5, offsetY);
+            ctx.lineTo(bodyWidth / 2 + legLength * frontMultiplier, offsetY - legLength * 0.7);
+            ctx.stroke();
+        }
 
-    static drawCompoundEyes(ctx, x, y, appearance) {
-        // Реализация рисования фасеточных глаз
-    }
-    static drawBug(ctx, x, y, size, isEnemy = false) {
-        // Тело
-        ctx.fillStyle = isEnemy ? 'rgba(93, 64, 55, 1)' : 'rgba(139, 69, 19, 1)';
+        // Тело жука (острый хитиновый панцирь)
+        ctx.fillStyle = beetleColors.bodyMain;
         ctx.beginPath();
-        ctx.arc(x, y, size / 2, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, bodyWidth / 2, bodyHeight / 1.2, 0, 0, Math.PI * 2);
         ctx.fill();
-
-        // Глаза
-        ctx.fillStyle = isEnemy ? 'rgba(255, 82, 82, 1)' : 'rgba(255, 255, 255, 1)';
-        ctx.beginPath();
-        ctx.arc(x - 25, y - 15, 10, 0, Math.PI * 2);
-        ctx.arc(x + 25, y - 15, 10, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Усики
-        ctx.strokeStyle = isEnemy ? 'rgba(78, 52, 46, 1)' : 'rgba(93, 64, 55, 1)';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(x - 25, y - 15);
-        ctx.lineTo(x - 45, y - 35);
-        ctx.moveTo(x + 25, y - 15);
-        ctx.lineTo(x + 45, y - 35);
+        ctx.strokeStyle = beetleColors.bodyStroke;
+        ctx.lineWidth = 2;
         ctx.stroke();
 
-        // Крылья
-        ctx.fillStyle = isEnemy ? 'rgba(150, 150, 150, 0.3)' : 'rgba(200, 200, 200, 0.3)';
+        // Челюсти (острые и зубчатые)
+        ctx.fillStyle = beetleColors.jawBase;
+        ctx.strokeStyle = beetleColors.jawStroke;
+        ctx.lineWidth = size * 0.045;
+
+        // Левая челюсть
         ctx.beginPath();
-        ctx.ellipse(x, y - 10, 35, 50, 0, 0, Math.PI * 2);
+        ctx.moveTo(-headSize / 2, -bodyWidth - headSize / 3 - 10);  // Начало левой челюсти
+        ctx.lineTo(-5, -bodyWidth / 2 - headSize - 5);  // Конец левой челюсти (смещен влево на 5px от центра)
+        ctx.stroke();
+
+        // Правая челюсть
+        ctx.beginPath();
+        ctx.moveTo(headSize / 2, -bodyWidth - headSize / 3 - 10);  // Начало правой челюсти
+        ctx.lineTo(5, -bodyWidth / 2 - headSize - 5);  // Конец правой челюсти (смещен вправо на 5px от центра)
+        ctx.stroke();
+
+        // Дополнительные линии на челюстях
+        ctx.strokeStyle = beetleColors.jawDetails;
+        ctx.lineWidth = size * 0.038;
+        ctx.beginPath();
+        // Левая линия
+        ctx.moveTo(-headSize / 3, -bodyWidth - headSize / 3);
+        ctx.lineTo(-headSize / 2 + 8, -bodyWidth - headSize / 3 - 8);
+        // Правая линия
+        ctx.moveTo(headSize / 3, -bodyWidth - headSize / 3);
+        ctx.lineTo(headSize / 2 - 8, -bodyWidth - headSize / 3 - 8);
+        ctx.stroke();
+
+        // Голова (детализированная)
+        ctx.fillStyle = beetleColors.head;
+        ctx.beginPath();
+        ctx.arc(0, -bodyWidth / 2 - headSize / 2, headSize, 0, Math.PI * 2);
         ctx.fill();
+
+        // Глаза (злые, со светящимся эффектом)
+        const eyeGradient = ctx.createRadialGradient(
+            -headSize / 3, -bodyWidth / 2 - headSize / 1.8, 1,
+            -headSize / 3, -bodyWidth / 2 - headSize / 1.8, headSize / 4
+        );
+        eyeGradient.addColorStop(0, beetleColors.eyeGradientStart);
+        eyeGradient.addColorStop(1, beetleColors.eyeGradientEnd);
+        ctx.fillStyle = eyeGradient;
+        ctx.beginPath();
+        ctx.arc(-headSize / 3, -bodyWidth / 2 - headSize / 1.8, headSize / 4, 0, Math.PI * 2);
+        ctx.arc(headSize / 3, -bodyWidth / 2 - headSize / 1.8, headSize / 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Зрачки (вертикальные эллипсы для хищного взгляда)
+        ctx.fillStyle = beetleColors.pupils;
+        ctx.beginPath();
+        // Левый зрачок
+        ctx.ellipse(-headSize / 3.7 - headSize / 12, -bodyWidth / 2 - headSize / 1.8,
+            headSize / 10, headSize / 6, 0, 0, Math.PI * 2);
+        // Правый зрачок
+        ctx.ellipse(headSize / 3.7 + headSize / 12, -bodyWidth / 2 - headSize / 1.8,
+            headSize / 10, headSize / 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Блики в глазах
+        ctx.fillStyle = beetleColors.eyeShine;
+        ctx.beginPath();
+        // Левый блик
+        ctx.arc(-headSize / 3.3 - headSize / 8, -bodyWidth / 2 - headSize / 1.9, headSize / 15, 0, Math.PI * 2);
+        // Правый блик
+        ctx.arc(headSize / 3.3 + headSize / 8, -bodyWidth / 2 - headSize / 1.9, headSize / 15, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Усики (изогнутые)
+        ctx.strokeStyle = beetleColors.antennae;
+        ctx.lineWidth = size * 0.02;
+        ctx.beginPath();
+        ctx.moveTo(-headSize / 3, -bodyWidth / 2 - headSize / 5);
+        ctx.quadraticCurveTo(-headSize, -bodyWidth / 2 - headSize * 1.5, -headSize * 0.8, -bodyWidth / 2 - headSize * 1.8);
+        ctx.moveTo(headSize / 3, -bodyWidth / 2 - headSize / 5);
+        ctx.quadraticCurveTo(headSize, -bodyWidth / 2 - headSize * 1.5, headSize * 0.8, -bodyWidth / 2 - headSize * 1.8);
+        ctx.stroke();
+
+        // Хитиновые пластины на спине
+        ctx.strokeStyle = beetleColors.plates;
+        ctx.lineWidth = size * 0.02;
+        const bodyRadiusX = bodyWidth / 2;
+        const bodyRadiusY = bodyHeight / 1.2;
+
+        for (let i = 1; i < 6; i++) {
+            const ratio = i / 6.3;
+            const plateY = -bodyRadiusY + (2 * bodyRadiusY) * ratio;
+            const plateWidth = (bodyRadiusX / bodyRadiusY) * Math.sqrt(bodyRadiusY ** 2 - plateY ** 2);
+
+            ctx.beginPath();
+            ctx.ellipse(0, plateY, plateWidth * 1.05, bodyRadiusY / 4, 0, 0, Math.PI);
+            ctx.stroke();
+        }
+
+        // Левое крыло
+        ctx.fillStyle = beetleColors.wings;
+        ctx.beginPath();
+        ctx.moveTo(-bodyWidth / 2 + 10, -10);
+        ctx.quadraticCurveTo(
+            -bodyWidth / 2 - size * 0.5, size * 0.2,
+            -bodyWidth / 2 - size * 0.5, size * 0.4
+        );
+        ctx.quadraticCurveTo(
+            -bodyWidth / 6 - size * 0.1, size * 0.3,
+            -bodyWidth / 3, size * 0.2
+        );
+        ctx.closePath();
+        ctx.fill();
+
+        // Контур крыла
+        ctx.strokeStyle = beetleColors.wingStroke;
+        ctx.lineWidth = size * 0.01;
+        ctx.stroke();
+
+        // Правое крыло (отраженное и смещенное вниз)
+        ctx.fillStyle = beetleColors.wings;
+        ctx.beginPath();
+        ctx.moveTo(bodyWidth / 2 - 10, -10 + 15);
+        ctx.quadraticCurveTo(
+            bodyWidth / 2 + size * 0.5, size * 0.2 + 15,
+            bodyWidth / 2 + size * 0.5, size * 0.4 + 15
+        );
+        ctx.quadraticCurveTo(
+            bodyWidth / 6 + size * 0.1, size * 0.3 + 15,
+            bodyWidth / 3, size * 0.2 + 15
+        );
+        ctx.closePath();
+        ctx.fill();
+
+        // Контур правого крыла
+        ctx.strokeStyle = beetleColors.wingStroke;
+        ctx.lineWidth = size * 0.01;
+        ctx.stroke();
+
+        // Восстанавливаем контекст
+        ctx.restore();
+
     }
+
 }
 
 class Battlefield {
@@ -945,26 +1109,26 @@ class Battlefield {
         ctx.font = 'bold 22px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        
+
         // Тень (имитация обводки)
         ctx.shadowColor = 'black';
         ctx.shadowBlur = 1; // Размытие
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 0;
-        
+
         // Основной текст
         ctx.fillStyle = character.appearance.hair.color;
         ctx.fillText(character.level, x - hpBarWidth / 2 - 15, hpBarY + hpBarHeight / 2 + 1);
-        
+
         // Отключаем тень для остального кода
         ctx.shadowBlur = 0;
         // // Чёрная обводка текста
         // ctx.strokeStyle = 'black';
         // ctx.lineWidth = 3;
         // ctx.strokeText(hpText, x, hpBarY + hpBarHeight / 2);
-        ctx.font = 'bold 16px Arial';
 
-        
+
+
         // Имя
         ctx.fillStyle = 'white';
         ctx.font = 'bold 19px Arial';
@@ -1041,12 +1205,7 @@ class Character {
 
     set level(value) {
         this._level = value
-        let newColor = this.appearance.calculateHairColor(value)
-        this.appearance.colors.hair=  newColor
-        this.appearance.colors.eyebrow =newColor
-        this.appearance.regenerateHair()
-        // this.appearance.generateHair();
-        // this.appearance.face.eyebrows = this.appearance.generateEyebrows();
+        this.appearance.regenerateHair(this.level)
         this.redraw()
     }
 
@@ -1101,10 +1260,10 @@ const battlefield = new Battlefield('battlefield');
 // Создаем персонажей
 const orc1 = new Orc("Гром'Аш", "За Орду!", 250, 7)
 
-const orc2 = new Orc("Разогр", "Опять работать!", 100, 4)
+const bug1 = new Bug("Разогр", "Опять работать!", 100, 4)
 const orc3 = new Orc("Гаррош", "Я принёс только смерть!", 150, 5)
 
 const orc4 = new Orc("Ренер", "Я принёс только смерть!", 150, 5, "enemy")
-const bug5 = new Bug("Жучара", "---------*зловеще молчит*----------", 50, 3, "enemy")
-const bug6 = new Bug("Васян", "*ZZZZZZZZZZZZZZZZZZZ*", 50, 3, "enemy")
+const bug2 = new Bug("Жучара", "---------*зловеще молчит*----------", 50, 3, "enemy")
+const orc6 = new Orc("Васян", "*ZZZZZZZZZZZZZZZZZZZ*", 50, 3, "enemy")
 
