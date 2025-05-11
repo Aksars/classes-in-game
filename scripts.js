@@ -708,7 +708,7 @@ class OrcRenderer extends CharacterRenderer {
         const weapon = appearance.weapon;
         const weaponAngle = appearance.weapon.angle
         ctx.save();
-        const gripX = isEnemy ? x - 40 : x + 40 + weapon.offsetX;
+        const gripX = isEnemy ? x - 60 : x + 40 + weapon.offsetX;
         const gripY = y + 35 + weapon.offsetY;
         ctx.translate(gripX, gripY);
 
@@ -722,10 +722,10 @@ class OrcRenderer extends CharacterRenderer {
         ctx.fillStyle = weapon.colors.blade;
         ctx.beginPath();
         if (isEnemy) {
-            ctx.moveTo(-10, -20);
-            ctx.lineTo(-40, -30);
-            ctx.lineTo(-40, 30);
-            ctx.lineTo(-10, 20);
+            ctx.moveTo(0, -20);
+            ctx.lineTo(-30, -30);
+            ctx.lineTo(-30, 30);
+            ctx.lineTo(-0, 20);
         } else {
             ctx.moveTo(80, -20);
             ctx.lineTo(110, -30);
@@ -739,9 +739,9 @@ class OrcRenderer extends CharacterRenderer {
         ctx.fillStyle = 'rgba(150, 150, 150, 1)';
         ctx.beginPath();
         if (isEnemy) {
-            ctx.moveTo(-40, -30);
-            ctx.lineTo(-50, 0);
-            ctx.lineTo(-40, 30);
+            ctx.moveTo(-30, -30);
+            ctx.lineTo(-40, 0);
+            ctx.lineTo(-30, 30);
         } else {
             ctx.moveTo(110, -30);
             ctx.lineTo(120, 0);
@@ -1022,7 +1022,7 @@ class Battlefield {
 
         // Создаем canvas для персонажа
         const charCanvas = document.createElement('canvas');
-        charCanvas.width = 400;
+        charCanvas.width = 300;
         charCanvas.height = 300;
         charCanvas.style.position = 'absolute';
         charCanvas.style.zIndex = '10';
@@ -1042,7 +1042,7 @@ class Battlefield {
         const index = teamArray.indexOf(character);
         const isEnemy = character.team === "enemy";
 
-        const x = isEnemy ? this.canvas.width * 0.95 - 100 : this.canvas.width * 0.05 + 100;
+        const x = isEnemy ? this.canvas.width - 200 : 100;
         const y = 150 + index * 250;
 
         const charData = this._characterCanvases.get(character);
@@ -1063,7 +1063,7 @@ class Battlefield {
         }
 
         // Центральные координаты в canvas персонажа
-        const centerX = 100;
+        const centerX = character.team === "friend" ? 120 : 180;
         const centerY = 150;
 
         CharacterRenderer.drawCharacter(ctx, centerX, centerY, character.appearance, character.species)
@@ -1100,32 +1100,110 @@ class Battlefield {
         ctx.fillStyle = 'white';
         ctx.fillText(hpText, x, hpBarY + hpBarHeight / 2 + 1);
 
-        // Круг уровня
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.66)'; // Фон круга
+        // Позиция круга уровня
+        const levelCircleRadius = 25;
+        let levelCircleX;
+
+        if (character.team === "friend") {
+            // Для друзей - слева от полоски HP
+            levelCircleX = x - hpBarWidth / 2 - 15;
+        } else {
+            // Для врагов - справа от полоски HP
+            levelCircleX = x + hpBarWidth / 2 + 15;
+        }
+
+        const levelCircleY = hpBarY + hpBarHeight / 2;
+
+        // Рисуем круг уровня
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.66)';
         ctx.beginPath();
-        ctx.arc(x - hpBarWidth / 2 - 15, hpBarY + hpBarHeight / 2, 25, 0, Math.PI * 2);
+        ctx.arc(levelCircleX, levelCircleY, levelCircleRadius, 0, Math.PI * 2);
         ctx.fill();
 
+        // Текст уровня
         ctx.font = 'bold 22px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
         // Тень (имитация обводки)
-        ctx.shadowColor = 'black';
-        ctx.shadowBlur = 1; // Размытие
+        ctx.shadowColor = character.appearance.hair.color;
+        ctx.shadowBlur = 2;
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 0;
 
         // Основной текст
-        ctx.fillStyle = character.appearance.hair.color;
-        ctx.fillText(character.level, x - hpBarWidth / 2 - 15, hpBarY + hpBarHeight / 2 + 1);
+        ctx.fillStyle = "black";
+        ctx.fillText(character.level, levelCircleX, levelCircleY + 1);
 
-        // Отключаем тень для остального кода
+        // Отключаем тень
         ctx.shadowBlur = 0;
-        // // Чёрная обводка текста
-        // ctx.strokeStyle = 'black';
-        // ctx.lineWidth = 3;
-        // ctx.strokeText(hpText, x, hpBarY + hpBarHeight / 2);
+
+
+
+        // Поле атаки в виде стрелки с вашими правками
+        let attackText = character.attack.toString();
+        let digitsCount = attackText.length;
+
+        // Масштабируем стрелку пропорционально по ширине и высоте
+        let scaleFactor = 1;
+        if (digitsCount === 2) scaleFactor = 1.4;
+        else if (digitsCount >= 3) scaleFactor = 2.5;
+        scaleFactor = Math.min(scaleFactor, 4);
+
+        const baseSize = 33; // Базовая ширина и высота
+        const attackBoxWidth = baseSize * scaleFactor;
+        const attackBoxHeight = baseSize * (1 + (scaleFactor - 1) * 0.7); // Теперь высота тоже масштабируется
+
+
+
+        // Ваши оригинальные цвета и стиль
+        ctx.fillStyle = 'rgba(244, 67, 54, 0.8)';
+
+        // Новое вертикальное позиционирование с учетом высоты
+        const baseYPosition = hpBarY + hpBarHeight + 5; // Ваша базовая позиция
+        const verticalOffset = (attackBoxHeight - baseSize) / 2; // Корректировка для центрирования
+        const attackBoxY = baseYPosition - verticalOffset; // Финальная позиция
+
+
+        // Горизонтальное позиционирование (ваш текущий код)
+        let attackBoxX;
+        if (character.team === "friend") {
+            attackBoxX = x + hpBarWidth / 2 + 33;
+            ctx.beginPath();
+            ctx.moveTo(attackBoxX, attackBoxY);
+            ctx.lineTo(attackBoxX + attackBoxWidth, attackBoxY + attackBoxHeight / 2);
+            ctx.lineTo(attackBoxX, attackBoxY + attackBoxHeight);
+            ctx.closePath();
+            ctx.fill();
+        } else {
+            attackBoxX = x - hpBarWidth / 2 - 33 - attackBoxWidth;
+            ctx.beginPath();
+            ctx.moveTo(attackBoxX + attackBoxWidth, attackBoxY);
+            ctx.lineTo(attackBoxX, attackBoxY + attackBoxHeight / 2);
+            ctx.lineTo(attackBoxX + attackBoxWidth, attackBoxY + attackBoxHeight);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+
+
+        // Ваше точное позиционирование текста
+        ctx.fillStyle = 'white';
+        ctx.font = `bold ${18 * (1 + (scaleFactor - 1) * 0.4)}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        let textX, textY;
+        if (character.team === "friend") {
+            textX = attackBoxX + attackBoxWidth / 2.5; // Ваш подбор
+            textY = attackBoxY + attackBoxHeight / 1.92;
+        } else {
+            textX = attackBoxX + attackBoxWidth / 1.6; // Ваш подбор
+            textY = attackBoxY + attackBoxHeight / 1.92;
+        }
+
+        // Рисуем текст (без обводки, как вы просили)
+        ctx.fillText(attackText, textX, textY);
 
 
 
@@ -1166,12 +1244,12 @@ class Character {
         this.name = name;
         this.phrase = phrase;
         // сколько здоровья на 1 уровне
-        this.lvl1HP =hp
+        this.lvl1HP = hp
         // сколько здоровья максимум сейчас
         this.maxHp = hp;
         // текущее здоровье, работает через геттер get hp(){}
         this._hp = hp;
-        
+        this.lvl1Atk = attack
         this.attack = attack;
         this.team = team;
     }
@@ -1212,6 +1290,9 @@ class Character {
 
     set level(value) {
         this._level = value
+        this.maxHp = this.lvl1HP + (this.level - 1) * 40
+        this.hp = this.maxHp
+        this.attack = this.lvl1Atk + (this.level - 1) * 7
         this.appearance.regenerateHair(this.level)
         this.redraw()
     }
@@ -1265,12 +1346,12 @@ const battlefield = new Battlefield('battlefield');
 
 
 // Создаем персонажей
-const orc1 = new Orc("Гром'Аш", "За Орду!", 250, 7)
+const orc1 = new Orc("Гром'Аш", "За Орду!", 250, 17)
 
-const bug1 = new Bug("Разогр", "Опять работать!", 100, 4)
-const orc3 = new Orc("Гаррош", "Я принёс только смерть!", 150, 5)
+const bug1 = new Bug("Жжжорисиус", "Опять работать!", 100, 7)
+const orc3 = new Orc("Гаррош", "Я принёс только смерть!", 150, 12)
 
-const orc4 = new Orc("Ренер", "Я принёс только смерть!", 150, 5, "enemy")
-const bug2 = new Bug("Жучара", "---------*зловеще молчит*----------", 50, 3, "enemy")
-const orc6 = new Orc("Васян", "*ZZZZZZZZZZZZZZZZZZZ*", 50, 3, "enemy")
+const orc4 = new Orc("Ренер", "Я принёс только смерть!", 150, 13, "enemy")
+const bug2 = new Bug("Жучара", "---------*зловеще молчит*----------", 75, 3, "enemy")
+const orc6 = new Orc("Васян", "*ZZZZZZZZZZZZZZZZZZZ*", 70, 33, "enemy")
 

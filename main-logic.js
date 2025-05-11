@@ -225,73 +225,73 @@ console.log(orc1,orc2,orc3,bug1,bug2)
 // Фаза 4 НАЧАЛО
 // СЕТТЕРЫ И ГЕТТЕРЫ
 
-// class Enemy {
-//   constructor(name, phrase, hp, attack) {
-//     this.name = name;
-//     this.phrase = phrase;
-//     this.hp = hp;
-//     this.attack = attack;
-//     this._level = 1;
-//     this._xp = 0;
-//   }
-//   sayPhrase = () => console.log(this.phrase);
-//   attackMove = () => {
-//      console.log(`${this.name} атакует и наносит ${this.attack} урона!`);          
-//   };
-//   get danger() {
-//     return this.hp * this.attack + this._level*25;
-//   }
-//   set xp(опыт) {
-//     this._xp = опыт;
-//     this.level = Math.floor(опыт / 1000) + 1;
-//   }
-//   get xp() {
-//     return this._xp;
-//   }
-//   set level(левл) {
-//     this._level = левл;
-//     this._xp = (this._level - 1) * 1000;
-//   }
-// }
-// class Orc extends Enemy {
-//     constructor(name, phrase, hp, attack) {
-//         super(name, phrase, hp, attack)
-//         this.species = "Орк"
-//         this.rage = 20  
-//     }
-//     battleCry = () => {
-//         console.log("ЛОК'ТАР ОГАР!")
-//         this.rage += 10  // Боевой клич увеличивает ярость
-//     }
-// }
-// class Bug extends Enemy {
-//   constructor(name, phrase, hp, attack) {
-//     super(name, phrase, hp, attack);
-//     this.species = "Жук";
-//     this.лапы = 6;
-//   }
-//   hide = () => console.log("Прячемся! *становится невидимым*")
-// }
-// class Robot extends Enemy {
-//   constructor(name, phrase, hp, attack) {
-//     super(name, phrase, hp, attack);
-//     this.species = "Робот";
-//     this.battary = 100;
-//   }
-//   laser = () => {       
-//           console.log(`${this.name} стреляет лазером и наносит ${this.attack} урона!`);          
-//   } 
-// }
+class Enemy {
+  constructor(name, phrase, hp, attack) {
+    this.name = name;
+    this.phrase = phrase;
+    this.hp = hp;
+    this.attack = attack;
+    this._level = 1;
+    this._xp = 0;
+  }
+  sayPhrase = () => console.log(this.phrase);
+  attackMove = () => {
+     console.log(`${this.name} атакует и наносит ${this.attack} урона!`);          
+  };
+  get danger() {
+    return this.hp * this.attack + this._level*25;
+  }
+  set xp(опыт) {
+    this._xp = опыт;
+    this.level = Math.floor(опыт / 1000) + 1;
+  }
+  get xp() {
+    return this._xp;
+  }
+  set level(левл) {
+    this._level = левл;
+    this._xp = (this._level - 1) * 1000;
+  }
+}
+class Orc extends Enemy {
+    constructor(name, phrase, hp, attack) {
+        super(name, phrase, hp, attack)
+        this.species = "Орк"
+        this.rage = 20  
+    }
+    battleCry = () => {
+        console.log("ЛОК'ТАР ОГАР!")
+        this.rage += 10  // Боевой клич увеличивает ярость
+    }
+}
+class Bug extends Enemy {
+  constructor(name, phrase, hp, attack) {
+    super(name, phrase, hp, attack);
+    this.species = "Жук";
+    this.лапы = 6;
+  }
+  hide = () => console.log("Прячемся! *становится невидимым*")
+}
+class Robot extends Enemy {
+  constructor(name, phrase, hp, attack) {
+    super(name, phrase, hp, attack);
+    this.species = "Робот";
+    this.battary = 100;
+  }
+  laser = () => {       
+          console.log(`${this.name} стреляет лазером и наносит ${this.attack} урона!`);          
+  } 
+}
 
-// // Создаем персонажей. Все точно так же
-// const orc1 = new Orc("Гром'Аш", "За Орду!", 250, 7)
-// const orc2 = new Orc("Разогр", "Опять работать!", 100, 4)  
-// const orc3 = new Orc("Гаррош", "Я принёс только смерть!", 150, 5)
+// Создаем персонажей. Все точно так же
+const orc1 = new Orc("Гром'Аш", "За Орду!", 250, 7)
+const orc2 = new Orc("Разогр", "Опять работать!", 100, 4)  
+const orc3 = new Orc("Гаррош", "Я принёс только смерть!", 150, 5)
 
-// const bug1 = new Bug("Жучара", "---------*зловеще молчит*----------", 50, 3)
-// const bug2 = new Bug("Васян", "*ZZZZZZZZZZZZZZZZZZZ*", 50, 3)
+const bug1 = new Bug("Жучара", "---------*зловеще молчит*----------", 50, 3)
+const bug2 = new Bug("Васян", "*ZZZZZZZZZZZZZZZZZZZ*", 50, 3)
 
-// const robot1 = new Robot("Мегатрон", "Я вас уничтожу!", 200, 15)
+const robot1 = new Robot("Мегатрон", "Я вас уничтожу!", 200, 15)
 
 
 // ЗАДАНИЯ // ЗАДАНИЯ // ЗАДАНИЯ // ЗАДАНИЯ // ЗАДАНИЯ // ЗАДАНИЯ
