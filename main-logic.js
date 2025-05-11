@@ -3,60 +3,60 @@
 // Фаза 1 НАЧАЛО
 // Фаза 1 НАЧАЛО
 // ОБЪЕКТЫ
-let orc1 = {
-    name:"Гром'Аш",
-    hp:250,
-    attack: 7,
-    level:1,
-    phrase:"За Орду!",
-    sayPhrase: function(){ console.log(this.phrase) },
-    battleCry: function(){ console.log("ЛОК'ТАР ОГАР!") },
-    species: "Орк"
-}
-let orc2 = {
-    name:"Разогр",
-    hp:100,
-    attack: 4,
-    level:1,
-    phrase:"Опять работать!",
-    sayPhrase: function(){ console.log(this.phrase) },
-    battleCry: function(){ console.log("ЛОК'ТАР ОГАР!") },
-    species: "Орк"
-}
-let orc3 = {
-    name:"Гаррош",
-    hp:150,
-    attack: 5,
-    level:1,
-    phrase:"Я принёс только смерть!",
-    sayPhrase: function(){ console.log(this.phrase) },
-    battleCry: function(){ console.log("ЛОК'ТАР ОГАР!") },
-    species: "Орк"
-}
+// let orc1 = {
+//     name:"Гром'Аш",
+//     hp:250,
+//     attack: 7,
+//     level:1,
+//     phrase:"За Орду!",
+//     sayPhrase: function(){ console.log(this.phrase) },
+//     battleCry: function(){ console.log("ЛОК'ТАР ОГАР!") },
+//     species: "Орк"
+// }
+// let orc2 = {
+//     name:"Разогр",
+//     hp:100,
+//     attack: 4,
+//     level:1,
+//     phrase:"Опять работать!",
+//     sayPhrase: function(){ console.log(this.phrase) },
+//     battleCry: function(){ console.log("ЛОК'ТАР ОГАР!") },
+//     species: "Орк"
+// }
+// let orc3 = {
+//     name:"Гаррош",
+//     hp:150,
+//     attack: 5,
+//     level:1,
+//     phrase:"Я принёс только смерть!",
+//     sayPhrase: function(){ console.log(this.phrase) },
+//     battleCry: function(){ console.log("ЛОК'ТАР ОГАР!") },
+//     species: "Орк"
+// }
 
-let bug1 = {
-    name:"Жучара",
-    hp:50,
-    attack: 3,
-    level:1,
-    phrase:"---------*зловеще молчит*----------",
-    sayPhrase: function(){ console.log(this.phrase) },
-    hide: function(){ console.log("Прячемся! *становиться невидимым*") },
-    species: "Жук"
-}
+// let bug1 = {
+//     name:"Жучара",
+//     hp:50,
+//     attack: 3,
+//     level:1,
+//     phrase:"---------*зловеще молчит*----------",
+//     sayPhrase: function(){ console.log(this.phrase) },
+//     hide: function(){ console.log("Прячемся! *становиться невидимым*") },
+//     species: "Жук"
+// }
 
-let bug2 = {
-    name:"Васян",
-    hp:50,
-    attack: 3,
-    level:1,
-    phrase:"*ZZZZZZZZZZZZZZZZZZZ*",
-    sayPhrase: function(){ console.log(this.phrase) },
-    hide: function(){ console.log("Прячемся! *становиться невидимым*") },
-    species: "Жук"
-}
+// let bug2 = {
+//     name:"Васян",
+//     hp:50,
+//     attack: 3,
+//     level:1,
+//     phrase:"*ZZZZZZZZZZZZZZZZZZZ*",
+//     sayPhrase: function(){ console.log(this.phrase) },
+//     hide: function(){ console.log("Прячемся! *становиться невидимым*") },
+//     species: "Жук"
+// }
 
-console.log(orc1,orc2,orc3,bug1,bug2)
+// console.log(orc1,orc2,orc3,bug1,bug2)
 
 // ЗАДАНИЯ // ЗАДАНИЯ // ЗАДАНИЯ // ЗАДАНИЯ // ЗАДАНИЯ // ЗАДАНИЯ
 
